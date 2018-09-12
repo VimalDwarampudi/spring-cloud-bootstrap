@@ -10,7 +10,6 @@
         <module name="config" />
         <module name="discovery" />
         <module name="gateway" />
-        <module name="rating" />
         <module name="zipkin" />
       </profile>
     </annotationProcessing>

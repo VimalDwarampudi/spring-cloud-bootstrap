@@ -11,12 +11,14 @@ import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.cloud.sleuth.metric.SpanMetricReporter;
 import org.springframework.cloud.sleuth.zipkin.HttpZipkinSpanReporter;
 import org.springframework.cloud.sleuth.zipkin.ZipkinProperties;
+import org.springframework.cloud.sleuth.zipkin.ZipkinRestTemplateCustomizer;
 import org.springframework.cloud.sleuth.zipkin.ZipkinSpanReporter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 import zipkin.Span;
 
 import java.util.Arrays;
@@ -45,21 +47,29 @@ public class BookServiceApplication {
         return new ZipkinSpanReporter() {
             private HttpZipkinSpanReporter delegate;
             private String baseUrl;
+            private ZipkinRestTemplateCustomizer zipkinRestTemplateCustomizer;
 
             @Override
             public void report(Span span) {
-                InstanceInfo instance = eurekaClient.getNextServerFromEureka("zipkin", false);
-                if (!(baseUrl != null && instance.getHomePageUrl().equals(baseUrl))) {
+
+                InstanceInfo instance = eurekaClient
+                        .getNextServerFromEureka("zipkin", false);
+                if (!(baseUrl != null &&
+                        instance.getHomePageUrl().equals(baseUrl))) {
                     baseUrl = instance.getHomePageUrl();
+                    RestTemplate restTemplate = new RestTemplate();
+                    zipkinRestTemplateCustomizer.customize(restTemplate);
+                    delegate = new HttpZipkinSpanReporter(
+                            restTemplate,
+                            baseUrl,
+                            zipkinProperties.getFlushInterval(),
+                            spanMetricReporter);
+                }
 
-                    delegate= new HttpZipkinSpanReporter(baseUrl,baseUrl,zipkinProperties.getFlushInterval(),spanMetricReporter);
-
-
-                    delegate = new HttpZipkinSpanReporter(baseUrl, zipkinProperties.getFlushInterval(), zipkinProperties.getCompression().isEnabled(), spanMetricReporter);
-                    if (!span.name.matches(skipPattern)) delegate.report(span);
+                if (!span.name.matches(skipPattern)) {
+                    delegate.report(span);
                 }
             }
         };
-
     }
 }
