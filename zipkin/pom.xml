@@ -21,18 +21,51 @@
             <artifactId>spring-cloud-starter-eureka</artifactId>
         </dependency>
 
+
+
+
         <dependency>
             <groupId>io.zipkin.java</groupId>
             <artifactId>zipkin-server</artifactId>
+            <version>1.19.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.zipkin.java</groupId>
+                    <artifactId>zipkin</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>io.zipkin.java</groupId>
+            <artifactId>zipkin</artifactId>
+            <version>1.19.2</version>
         </dependency>
 
         <dependency>
             <groupId>io.zipkin.java</groupId>
             <artifactId>zipkin-autoconfigure-ui</artifactId>
-            <scope>runtime</scope>
+          <version>1.19.2</version>
         </dependency>
 
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud-dependencies.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <properties>
+        <spring-cloud-dependencies.version>Camden.SR6</spring-cloud-dependencies.version>
+    </properties>
+
 
 
 </project>
